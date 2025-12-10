@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Weather App</title>
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+
+<body>
+  <div class="container">
+    <h1 class="title">Weather App</h1>
+
+    <div class="form-row">
+      <input id="cityInput" type="text" placeholder="Enter city name" value="{{ default_city }}">
+      <button id="searchBtn">Get Weather</button>
+    </div>
+
+    <div id="error" class="error hidden"></div>
+
+    <div id="result" class="card hidden">
+      <h2 id="location"></h2>
+      <img id="icon" class="weather-icon" />
+
+      <p id="desc" class="desc"></p>
+      <p id="temp" class="temp"></p>
+      <p id="feels"></p>
+      <p id="humidity"></p>
+      <p id="wind"></p>
+    </div>
+  </div>
+
+<script>
+const btn = document.getElementById("searchBtn");
+const cityInput = document.getElementById("cityInput");
+const errorBox = document.getElementById("error");
+const result = document.getElementById("result");
+
+btn.onclick = fetchWeather;
+cityInput.addEventListener("keydown", e => { if (e.key === "Enter") fetchWeather(); });
+
+function fetchWeather() {
+  const city = cityInput.value.trim();
+  if (!city) {
+    showError("Please enter a city name");
+    return;
+  }
+  hideError();
+
+  fetch(`/weather?city=${city}`)
+    .then(r => r.json())
+    .then(data => {
+      if (data.error) return showError(data.error);
+
+      document.getElementById("location").innerText = data.city;
+      document.getElementById("desc").innerText = data.description.toUpperCase();
+      document.getElementById("temp").innerText = `Temperature: ${data.temperature_c}°C`;
+      document.getElementById("feels").innerText = `Feels Like: ${data.feels_like_c}°C`;
+      document.getElementById("humidity").innerText = `Humidity: ${data.humidity}%`;
+      document.getElementById("wind").innerText = `Wind Speed: ${data.wind_speed} m/s`;
+      document.getElementById("icon").src = `https://openweathermap.org/img/wn/${data.icon}@4x.png`;
+
+      result.classList.remove("hidden");
+    })
+    .catch(() => showError("Unable to fetch weather"));
+}
+
+function showError(msg) {
+  errorBox.innerText = msg;
+  errorBox.classList.remove("hidden");
+  result.classList.add("hidden");
+}
+
+function hideError() {
+  errorBox.classList.add("hidden");
+}
+</script>
+
+</body>
+</html>
